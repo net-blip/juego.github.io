@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego Verdadero/Falso</title>
+    <style>
+        :root {
+            --yellow: #FCD307;
+            --orange: #FFBC00;
+            --black: #000000;
+            --gray: #E2E2E2;
+            --white: #FFFFFF;
+            --green: #4CAF50;
+            --red: #F44336;
+            --blue: #2196F3;
+            --purple: #9C27B0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--gray);
+            color: var(--black);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .question-container {
+            background-color: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: var(--black);
+            margin-bottom: 25px;
+            font-size: clamp(1.8rem, 4vw, 2.2rem);
+        }
+
+        .question {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            margin-bottom: 20px;
+            color: var(--black);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-container {
+            margin: 0 auto 20px;
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .image {
+            max-width: 100%;
+            max-height: 300px;
+            height: auto;
+            border-radius: 8px;
+            object-fit: contain;
+            border: 1px solid var(--gray);
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            background-color: var(--yellow);
+            color: var(--black);
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1 1 45%;
+            min-width: 120px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: var(--orange);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #feedback {
+            margin-top: 20px;
+            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+            font-weight: bold;
+            min-height: 30px;
+        }
+
+        .correct {
+            color: var(--green);
+        }
+
+        .incorrect {
+            color: var(--red);
+        }
+
+        #explanation {
+            margin-top: 15px;
+            font-size: clamp(1rem, 2vw, 1.1rem);
+            color: var(--black);
+            padding: 10px;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 8px;
+        }
+
+        .progress {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: var(--black);
+            opacity: 0.7;
+        }
+
+        /* Celebración */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .celebration-content {
+            background-color: var(--white);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 90%;
+            width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .celebration h2 {
+            font-size: 2.5rem;
+            color: var(--black);
+            margin-bottom: 15px;
+            animation: bounce 1s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
+
+        .celebration p {
+            font-size: 1.5rem;
+            color: var(--black);
+            margin-bottom: 25px;
+        }
+
+        .celebration .score {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--yellow);
+            margin: 15px 0;
+        }
+
+        .celebration button {
+            background-color: var(--green);
+            color: white;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .celebration button:hover {
+            background-color: #FFBC00;
+            transform: scale(1.05);
+        }
+
+        .confetti {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background-color: var(--yellow);
+            opacity: 0.8;
+            animation: confetti-fall 5s linear forwards;
+            z-index: -1;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 5px;
+            animation: firework-explode 1s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes firework-explode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(20);
+                opacity: 0;
+            }
+        }
+
+        /* Media Queries para diferentes tamaños de pantalla */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+            
+            .question-container {
+                padding: 20px;
+            }
+            
+            .buttons {
+                gap: 10px;
+            }
+            
+            button {
+                flex: 1 1 100%;
+                padding: 10px;
+            }
+            
+            .celebration h2 {
+                font-size: 2rem;
+            }
+            
+            .celebration p {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .question-container {
+                padding: 30px;
+            }
+            
+            button {
+                padding: 15px 30px;
+                font-size: 1.1em;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .question-container {
+                padding: 40px;
+            }
+            
+            .image {
+                max-height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="question-container">
+        <h1>Juego Verdadero/Falso</h1>
+        <div class="progress" id="progress">Pregunta 1 de 0</div>
+        <div class="question" id="question">Cargando preguntas...</div>
+        <div class="image-container">
+            <img class="image" id="question-image" src="" alt="Imagen de la pregunta" style="display: none;">
+        </div>
+        <div class="buttons">
+            <button onclick="checkAnswer(true)">Verdadero</button>
+            <button onclick="checkAnswer(false)">Falso</button>
+        </div>
+        <div id="feedback"></div>
+        <div id="explanation"></div>
+    </div>
+
+    <!-- Celebración al finalizar el juego -->
+    <div class="celebration" id="celebration">
+        <div class="celebration-content">
+            <h2>¡Felicidades! 🎉</h2>
+            <p>Has completado el juego</p>
+            <div class="score" id="final-score"></div>
+            <p>¡Gran trabajo!</p>
+            <button onclick="hideCelebration()">Jugar de nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        let questions = JSON.parse(localStorage.getItem("gameQuestions")) || [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let correctAnswers = 0;
+
+        function updateProgress() {
+            document.getElementById("progress").textContent = 
+                `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+        }
+
+        function loadQuestion() {
+            if (questions.length === 0) {
+                document.getElementById("question").textContent = "No hay preguntas configuradas. Por favor, añade preguntas en la configuración.";
+                document.querySelector(".buttons").style.display = "none";
+                document.getElementById("progress").style.display = "none";
+                return;
+            }
+
+            updateProgress();
+            
+            const questionObj = questions[currentQuestionIndex];
+            document.getElementById("question").textContent = questionObj.question;
+            
+            const imageElement = document.getElementById("question-image");
+            if (questionObj.image) {
+                imageElement.src = questionObj.image;
+                imageElement.style.display = "block";
+            } else {
+                imageElement.style.display = "none";
+            }
+            
+            document.getElementById("feedback").textContent = "";
+            document.getElementById("feedback").className = "";
+            document.getElementById("explanation").textContent = "";
+        }
+
+        function checkAnswer(userAnswer) {
+            if (questions.length === 0) return;
+            
+            const correctAnswer = questions[currentQuestionIndex].answer;
+            const feedbackElement = document.getElementById("feedback");
+            const explanationElement = document.getElementById("explanation");
+
+            if (userAnswer === correctAnswer) {
+                feedbackElement.textContent = "¡Correcto! ✅";
+                feedbackElement.className = "correct";
+                score++;
+                correctAnswers++;
+            } else {
+                feedbackElement.textContent = "Incorrecto ❌";
+                feedbackElement.className = "incorrect";
+            }
+
+            explanationElement.textContent = questions[currentQuestionIndex].explanation;
+
+            // Avanzar a la siguiente pregunta después de 3 segundos
+            setTimeout(() => {
+                currentQuestionIndex++;
+                
+                if (currentQuestionIndex >= questions.length) {
+                    showCelebration();
+                } else {
+                    loadQuestion();
+                }
+            }, 3000);
+        }
+
+        function showCelebration() {
+            const celebration = document.getElementById("celebration");
+            const finalScore = document.getElementById("final-score");
+            
+            // Calcular porcentaje de aciertos
+            const percentage = Math.round((correctAnswers / questions.length) * 100);
+            let message = "";
+            
+            if (percentage === 100) {
+                message = "¡Perfecto! 🏆 100%";
+            } else if (percentage >= 80) {
+                message = `Excelente! ${percentage}%`;
+            } else if (percentage >= 60) {
+                message = `Buen trabajo! ${percentage}%`;
+            } else {
+                message = `${percentage}% - Sigue practicando!`;
+            }
+            
+            finalScore.textContent = `${correctAnswers} de ${questions.length} correctas (${message})`;
+            celebration.style.display = "flex";
+            
+            // Crear confeti
+            createConfetti();
+            
+            // Crear fuegos artificiales
+            createFireworks();
+        }
+
+        function hideCelebration() {
+            const celebration = document.getElementById("celebration");
+            celebration.style.display = "none";
+            
+            // Reiniciar juego
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            score = 0;
+            loadQuestion();
+            
+            // Limpiar confeti
+            const confettiElements = document.querySelectorAll(".confetti, .firework");
+            confettiElements.forEach(el => el.remove());
+        }
+
+        function createConfetti() {
+            const colors = ["#FCD307", "#FFBC00", "#4CAF50", "#2196F3", "#9C27B0", "#F44336"];
+            
+            for (let i = 0; i < 150; i++) {
+                const confetti = document.createElement("div");
+                confetti.className = "confetti";
+                confetti.style.left = Math.random() * 100 + "vw";
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = (Math.random() * 10 + 5) + "px";
+                confetti.style.height = (Math.random() * 10 + 5) + "px";
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + "s";
+                confetti.style.animationDelay = (Math.random() * 2) + "s";
+                document.body.appendChild(confetti);
+            }
+        }
+
+        function createFireworks() {
+            const positions = [
+                {top: "20%", left: "20%"},
+                {top: "30%", left: "50%"},
+                {top: "20%", left: "80%"},
+                {top: "60%", left: "30%"},
+                {top: "70%", left: "70%"}
+            ];
+            
+            const colors = ["#ff0000", "#ffff00", "#00ff00", "#00ffff", "#ff00ff"];
+            
+            positions.forEach((pos, index) => {
+                setTimeout(() => {
+                    const firework = document.createElement("div");
+                    firework.className = "firework";
+                    firework.style.top = pos.top;
+                    firework.style.left = pos.left;
+                    firework.style.boxShadow = `0 0 10px 5px ${colors[index % colors.length]}`;
+                    document.body.appendChild(firework);
+                    
+                    // Remover después de la animación
+                    setTimeout(() => {
+                        firework.remove();
+                    }, 1000);
+                }, index * 800);
+            });
+        }
+
+        // Cargar la primera pregunta al iniciar
+        document.addEventListener("DOMContentLoaded", function() {
+            // Verificar si hay preguntas cargadas
+            if (questions.length === 0) {
+                // Intentar cargar preguntas por defecto si no hay en localStorage
+                const defaultQuestions = [
+                    {
+                        question: "¿El agua hierve a 100 grados Celsius al nivel del mar? 🌡️",
+                        explanation: "El agua hierve a 100 grados Celsius al nivel del mar debido a la presión atmosférica estándar.",
+                        image: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse3.mm.bing.net%2Fth%3Fid%3DOIP.Zjy4g_SySEk2TlUOyLb1IgHaHy%26pid%3DApi&f=1&ipt=7be092b71f9123f59553752485d56f460e08be39750d4625b08aae8e8a21a4b4&ipo=images",
+                        answer: true
+                    },
+                    {
+                        question: "¿La Tierra es plana? 🌍",
+                        explanation: "La Tierra es un esferoide oblato, lo que significa que es casi esférica pero achatada en los polos.",
+                        image: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse1.mm.bing.net%2Fth%3Fid%3DOIP.YZbOF-7qdP4qC9MSsS0uoAHaEK%26pid%3DApi&f=1&ipt=6e38dfba58b7d524678e900d4dee9d26acd2397e40f9f2eb8ec4a686620e69e4&ipo=images",
+                        answer: false
+                    }
+                ];
+                
+                // Guardar preguntas por defecto si no hay ninguna
+                localStorage.setItem("gameQuestions", JSON.stringify(defaultQuestions));
+                questions = defaultQuestions;
+            }
+            
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>
